@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:task_manager/task_item.dart';
+import 'package:task_manager/task_item_page.dart';
 
 // Ok, next steps:
 // - Take what you did with Inbox and make it re-usable for NextActions and Waiting For
@@ -10,16 +11,6 @@ import 'package:flutter/services.dart';
 
 void main() {
   runApp(const MyApp());
-}
-
-// Just keeping these as strings for now, they can be designed better later
-// TODO needs its actual state (e.g. IN, NEXTACTION, etc)
-class TaskItem {
-  TaskItem(this.title);
-  String title;
-  String? content;
-  String? project;
-  String? category;
 }
 
 class MyApp extends StatelessWidget {
@@ -38,7 +29,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// TODO make this stateful eventually
 class NextActionsPage extends StatefulWidget {
   final String title;
 
@@ -49,8 +39,22 @@ class NextActionsPage extends StatefulWidget {
 }
 
 class _NextActionsState extends State<NextActionsPage> {
+
+  final List<TaskItem> testItems = [
+    TaskItem("Next Action 1"),
+    TaskItem("Next Action 2"),
+    TaskItem("Next Action 3"),
+  ];
+
   @override
   Widget build(BuildContext context) {
+
+    Future<void> _navToTaskItem(TaskItem item) async {
+      final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(inboxItem: item)));
+      if (result == true) {
+        setState(() {});
+      }
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -60,9 +64,18 @@ class _NextActionsState extends State<NextActionsPage> {
       body: Column(
         children: [
           const Text("You've reached the nextAction area"),
-          const Text("NextAction1"),
-          const Text("NextAction2"),
-          const Text("NextAction3"),
+          ...testItems.map((item) =>
+            ActionChip(
+              label: Text(item.title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  )
+              ),
+              avatar: Icon(Icons.label_outline_rounded),
+              onPressed: () => _navToTaskItem(item),
+            ),
+          ),
           ElevatedButton(onPressed: () => Navigator.pop(context), child: Text("Back"))
         ],
       ),
@@ -86,7 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _navToInboxItem(TaskItem item) async {
-    final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => InboxPage(inboxItem: item)));
+    final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(inboxItem: item)));
     if (result == true) {
       setState(() {});
     }
@@ -199,75 +212,3 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class InboxPage extends StatefulWidget {
-  final TaskItem inboxItem;
-  const InboxPage({super.key, required this.inboxItem});
-
-  @override
-  State<StatefulWidget> createState() => _InboxPageState();
-}
-
-// TODO should you be able to edit title? Probably
-class _InboxPageState extends State<InboxPage> {
-  late final TextEditingController _itemContentController;
-  late final TextEditingController _itemProjectController;
-  late final TextEditingController _itemCategoryController;
-  late final TextEditingController _itemTitleController;
-  @override
-  void initState() {
-    super.initState();
-    final inboxItem = widget.inboxItem;
-    _itemTitleController = TextEditingController(text: inboxItem.title);
-    _itemContentController = TextEditingController(text: inboxItem.content);
-    _itemProjectController = TextEditingController(text: inboxItem.project);
-    _itemCategoryController = TextEditingController(text: inboxItem.category);
-  }
-
-  @override
-  void dispose() {
-    _itemContentController.dispose();
-    _itemCategoryController.dispose();
-    _itemProjectController.dispose();
-    _itemTitleController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: TextField(controller: _itemTitleController),
-        backgroundColor: Colors.amber,
-      ),
-      body: Column(
-        children: [
-          TextField(
-            controller: _itemContentController,
-            decoration: const InputDecoration(labelText: "Content"),
-          ),
-          TextField(
-            controller: _itemProjectController,
-            decoration: const InputDecoration(labelText: "Project"),
-          ),
-          TextField(
-            controller: _itemCategoryController,
-            decoration: const InputDecoration(labelText: "Category"),
-          ),
-          ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  widget.inboxItem
-                    ..title = _itemTitleController.text
-                    ..content = _itemContentController.text
-                    ..project = _itemProjectController.text
-                    ..category = _itemCategoryController.text;
-                });
-                Navigator.pop(context, true);
-              },
-              child: Icon(Icons.save))
-        ],
-      ),
-    );
-  }
-
-}
