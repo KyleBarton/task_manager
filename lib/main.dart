@@ -3,7 +3,6 @@ import 'package:task_manager/task_item.dart';
 import 'package:task_manager/task_item_page.dart';
 
 // Ok, next steps:
-// - Take what you did with Inbox and make it re-usable for NextActions and Waiting For
 // - Start adding a Dart repository layer that's separate from the Widgets
 // - Add testing
 // - Implement TODO statuses and make a good animation strategy for that
@@ -29,76 +28,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class TaskItemsSummaryPage extends StatefulWidget {
-  final String title;
-  final List<TaskItem> taskItems;
-  const TaskItemsSummaryPage({super.key, required this.title, required this.taskItems});
-
-  @override
-  State<StatefulWidget> createState() => _TaskItemsSummaryPageState();
-}
-
-class _TaskItemsSummaryPageState extends State<TaskItemsSummaryPage> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        backgroundColor: Colors.amber,
-      ),
-      body: Column(
-        children: [
-          Row(children: [
-            // TODO probably want to solve this with containers in actuality
-            SizedBox(width: 25),
-            Icon(Icons.inbox_rounded, size: 40,),
-            Text(widget.title, style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),)
-          ],),
-          ...widget.taskItems.map((item) =>
-              TaskItemAction(taskItem: item)),
-          ElevatedButton(onPressed: () => Navigator.pop(context), child: Text("Back"))
-        ],
-      ),
-    );
-  }
-}
-
-class NextActionsPage extends StatefulWidget {
-  final String title;
-
-  const NextActionsPage({super.key, this.title = "Next Actions"});
-
-  @override
-  State<StatefulWidget> createState() => _NextActionsState();
-}
-
-class _NextActionsState extends State<NextActionsPage> {
-
-  final List<TaskItem> testItems = [
-    TaskItem("Next Action 1"),
-    TaskItem("Next Action 2"),
-    TaskItem("Next Action 3"),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        backgroundColor: Colors.amber,
-      ),
-      body: Column(
-        children: [
-          const Text("You've reached the nextAction area"),
-          ...testItems.map((item) =>
-            TaskItemAction(taskItem: item)),
-          ElevatedButton(onPressed: () => Navigator.pop(context), child: Text("Back"))
-        ],
-      ),
-    );
-  }
-}
-
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
   final String title;
@@ -109,6 +38,8 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final List<TaskItem> _inboxItems = [];
+  // TODO ENUM please
+  var itemView = "inbox";
 
   final List<TaskItem> _testNextActions = [
     TaskItem("Next Action 1"),
@@ -121,12 +52,65 @@ class _MyHomePageState extends State<MyHomePage> {
     TaskItem("Waiting For 3"),
   ];
 
-  void _navToNextActions() {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemsSummaryPage(title: "Next Actions", taskItems: _testNextActions)));
+  Center _centerContent() {
+    var items = _inboxItems;
+    var titleRow = Row(children: [
+            // TODO probably want to solve this with containers in actuality
+            SizedBox(width: 25),
+            Icon(Icons.inbox_rounded, size: 40,),
+            Text("Inbox", style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),)
+          ],);
+    if (itemView == "nextActions") {
+      items = _testNextActions;
+      titleRow = Row(children: [
+        // TODO probably want to solve this with containers in actuality
+        SizedBox(width: 25),
+        Icon(Icons.pending_actions_rounded, size: 40,),
+        Text("Next Actions", style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),)
+      ],);
+    }
+    if (itemView == "waitingFor") {
+      items = _testWaitingFors;
+      titleRow = Row(children: [
+        // TODO probably want to solve this with containers in actuality
+        SizedBox(width: 25),
+        Icon(Icons.timer_rounded, size: 40,),
+        Text("Waiting For", style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),)
+      ],);
+    }
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          titleRow,
+          ...items.map((item) =>
+              Column(
+                children: [
+                  SizedBox(height: 5),
+                  TaskItemAction(taskItem: item)
+                ],
+              )
+          ),
+        ],
+      ),
+    );
+
+  }
+  void _viewInbox() {
+    setState(() {
+      itemView = "inbox";
+    });
+  }
+  void _viewNextActions() {
+    setState(() {
+      itemView = "nextActions";
+    });
   }
 
-  void _navToWaitingFors() {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemsSummaryPage(title: "Waiting For", taskItems: _testWaitingFors)));
+  void _viewWaitingFor() {
+    setState(() {
+      itemView = "waitingFor";
+    });
   }
 
   void _showInboxModal() {
@@ -163,48 +147,24 @@ class _MyHomePageState extends State<MyHomePage> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               ElevatedButton(
-                  onPressed: _navToNextActions,
+                  onPressed: _viewInbox,
+                  child: Text("Inbox")),
+              ElevatedButton(
+                  onPressed: _viewNextActions,
                   child: Text("Next Actions")),
               ElevatedButton(
-                  onPressed: _navToWaitingFors,
+                  onPressed: _viewWaitingFor,
                   child: Text("Waiting For")),
-              ElevatedButton(
-                  onPressed: null,
-                  child: Text("Projects")),
             ],
           ),
           SizedBox(height: 50),
-          inboxDialog()
+          _centerContent(),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showInboxModal,
-        tooltip: 'Increment',
+        tooltip: 'Add to Inbox',
         child: const Icon(Icons.add),
-      ),
-    );
-  }
-
-  Center inboxDialog() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Row(children: [
-            // TODO probably want to solve this with containers in actuality
-            SizedBox(width: 25),
-            Icon(Icons.inbox_rounded, size: 40,),
-            Text("Inbox", style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),)
-          ],),
-          ..._inboxItems.map((item) =>
-              Column(
-                children: [
-                  SizedBox(height: 5),
-                  TaskItemAction(taskItem: item)
-                ],
-              )
-          ),
-        ],
       ),
     );
   }
