@@ -38,18 +38,17 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final List<TaskItem> _inboxItems = [];
-  // TODO ENUM please
-  var itemView = "inbox";
+  var viewStatus = TaskStatus.inbox;
 
   final List<TaskItem> _testNextActions = [
-    TaskItem("Next Action 1"),
-    TaskItem("Next Action 2"),
-    TaskItem("Next Action 3"),
+    TaskItem(title: "Next Action 1"),
+    TaskItem(title: "Next Action 2"),
+    TaskItem(title: "Next Action 3"),
   ];
   final List<TaskItem> _testWaitingFors = [
-    TaskItem("Waiting For 1"),
-    TaskItem("Waiting For 2"),
-    TaskItem("Waiting For 3"),
+    TaskItem(title: "Waiting For 1"),
+    TaskItem(title: "Waiting For 2"),
+    TaskItem(title: "Waiting For 3"),
   ];
 
   Center _centerContent() {
@@ -60,7 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Icon(Icons.inbox_rounded, size: 40,),
             Text("Inbox", style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),)
           ],);
-    if (itemView == "nextActions") {
+    if (viewStatus == TaskStatus.nextAction) {
       items = _testNextActions;
       titleRow = Row(children: [
         // TODO probably want to solve this with containers in actuality
@@ -69,7 +68,7 @@ class _MyHomePageState extends State<MyHomePage> {
         Text("Next Actions", style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),)
       ],);
     }
-    if (itemView == "waitingFor") {
+    if (viewStatus == TaskStatus.waitingFor) {
       items = _testWaitingFors;
       titleRow = Row(children: [
         // TODO probably want to solve this with containers in actuality
@@ -98,18 +97,18 @@ class _MyHomePageState extends State<MyHomePage> {
   }
   void _viewInbox() {
     setState(() {
-      itemView = "inbox";
+      viewStatus = TaskStatus.inbox;
     });
   }
   void _viewNextActions() {
     setState(() {
-      itemView = "nextActions";
+      viewStatus = TaskStatus.nextAction;
     });
   }
 
   void _viewWaitingFor() {
     setState(() {
-      itemView = "waitingFor";
+      viewStatus = TaskStatus.waitingFor;
     });
   }
 
@@ -124,7 +123,7 @@ class _MyHomePageState extends State<MyHomePage> {
               onSubmitted: (value) {
                 Navigator.of(context).pop();
                 setState(() {
-                  var newInboxItem = TaskItem(value);
+                  var newInboxItem = TaskItem(title: value);
                   _inboxItems.add(newInboxItem);
                 });
                 final snackBar = SnackBar(content: const Text("Added to Inbox"));

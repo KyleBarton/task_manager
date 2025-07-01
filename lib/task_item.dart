@@ -1,7 +1,14 @@
-// Just keeping these as strings for now, they can be designed better later
-// TODO needs its actual state (e.g. IN, NEXTACTION, etc)
+enum TaskStatus {
+  inbox,
+  nextAction,
+  waitingFor,
+  somedayMaybe,
+  done,
+}
+
 class TaskItem {
-  TaskItem(this.title);
+  TaskItem({required this.title, this.status = TaskStatus.inbox});
+  TaskStatus status;
   String title;
   String? content;
   String? project;
