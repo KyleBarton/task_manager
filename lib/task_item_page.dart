@@ -73,3 +73,45 @@ class _TaskItemPageState extends State<TaskItemPage> {
   }
 
 }
+
+
+// A contained widget that facilitates navigation to the TaskItem drill-down.
+// TODO maybe this goes in another file too?
+class TaskItemAction extends StatefulWidget {
+  final TaskItem taskItem;
+
+  const TaskItemAction({super.key, required this.taskItem});
+
+  @override
+  State<StatefulWidget> createState() => _TaskItemActionState();
+}
+
+class _TaskItemActionState extends State<TaskItemAction> {
+
+  Future<void> _navToTaskItem(TaskItem item) async {
+    final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(inboxItem: item)));
+    if (result == true) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          SizedBox(width: 30),
+          ActionChip(
+            label: Text(widget.taskItem.title,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                )
+            ),
+            avatar: Icon(Icons.label_outline_rounded),
+            onPressed: () => _navToTaskItem(widget.taskItem),
+          )
+        ],
+      );
+}
+

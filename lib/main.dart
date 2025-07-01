@@ -48,14 +48,6 @@ class _NextActionsState extends State<NextActionsPage> {
 
   @override
   Widget build(BuildContext context) {
-
-    Future<void> _navToTaskItem(TaskItem item) async {
-      final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(inboxItem: item)));
-      if (result == true) {
-        setState(() {});
-      }
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -65,17 +57,7 @@ class _NextActionsState extends State<NextActionsPage> {
         children: [
           const Text("You've reached the nextAction area"),
           ...testItems.map((item) =>
-            ActionChip(
-              label: Text(item.title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  )
-              ),
-              avatar: Icon(Icons.label_outline_rounded),
-              onPressed: () => _navToTaskItem(item),
-            ),
-          ),
+            TaskItemAction(taskItem: item)),
           ElevatedButton(onPressed: () => Navigator.pop(context), child: Text("Back"))
         ],
       ),
@@ -128,20 +110,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
         backgroundColor: Colors.amber,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
       body: Column(
@@ -168,7 +139,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: _showInboxModal,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 
@@ -187,22 +158,7 @@ class _MyHomePageState extends State<MyHomePage> {
               Column(
                 children: [
                   SizedBox(height: 5),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      SizedBox(width: 30),
-                      ActionChip(
-                        label: Text(item.title,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                            )
-                        ),
-                        avatar: Icon(Icons.label_outline_rounded),
-                        onPressed: () => _navToInboxItem(item),
-                      ),
-                    ],
-                  )
+                  TaskItemAction(taskItem: item)
                 ],
               )
           ),
