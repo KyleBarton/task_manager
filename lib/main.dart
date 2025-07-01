@@ -29,6 +29,40 @@ class MyApp extends StatelessWidget {
   }
 }
 
+class TaskItemsSummaryPage extends StatefulWidget {
+  final String title;
+  final List<TaskItem> taskItems;
+  const TaskItemsSummaryPage({super.key, required this.title, required this.taskItems});
+
+  @override
+  State<StatefulWidget> createState() => _TaskItemsSummaryPageState();
+}
+
+class _TaskItemsSummaryPageState extends State<TaskItemsSummaryPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+        backgroundColor: Colors.amber,
+      ),
+      body: Column(
+        children: [
+          Row(children: [
+            // TODO probably want to solve this with containers in actuality
+            SizedBox(width: 25),
+            Icon(Icons.inbox_rounded, size: 40,),
+            Text(widget.title, style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),)
+          ],),
+          ...widget.taskItems.map((item) =>
+              TaskItemAction(taskItem: item)),
+          ElevatedButton(onPressed: () => Navigator.pop(context), child: Text("Back"))
+        ],
+      ),
+    );
+  }
+}
+
 class NextActionsPage extends StatefulWidget {
   final String title;
 
@@ -76,15 +110,23 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final List<TaskItem> _inboxItems = [];
 
+  final List<TaskItem> _testNextActions = [
+    TaskItem("Next Action 1"),
+    TaskItem("Next Action 2"),
+    TaskItem("Next Action 3"),
+  ];
+  final List<TaskItem> _testWaitingFors = [
+    TaskItem("Waiting For 1"),
+    TaskItem("Waiting For 2"),
+    TaskItem("Waiting For 3"),
+  ];
+
   void _navToNextActions() {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => const NextActionsPage()));
+    Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemsSummaryPage(title: "Next Actions", taskItems: _testNextActions)));
   }
 
-  Future<void> _navToInboxItem(TaskItem item) async {
-    final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(inboxItem: item)));
-    if (result == true) {
-      setState(() {});
-    }
+  void _navToWaitingFors() {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemsSummaryPage(title: "Waiting For", taskItems: _testWaitingFors)));
   }
 
   void _showInboxModal() {
@@ -124,7 +166,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   onPressed: _navToNextActions,
                   child: Text("Next Actions")),
               ElevatedButton(
-                  onPressed: null,
+                  onPressed: _navToWaitingFors,
                   child: Text("Waiting For")),
               ElevatedButton(
                   onPressed: null,
