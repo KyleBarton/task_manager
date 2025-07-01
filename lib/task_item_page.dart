@@ -9,7 +9,6 @@ class TaskItemPage extends StatefulWidget {
   State<StatefulWidget> createState() => _TaskItemPageState();
 }
 
-// TODO should you be able to edit title? Probably
 class _TaskItemPageState extends State<TaskItemPage> {
   late final TextEditingController _itemContentController;
   late final TextEditingController _itemProjectController;
@@ -91,6 +90,7 @@ class _TaskItemActionState extends State<TaskItemAction> {
   Future<void> _navToTaskItem(TaskItem item) async {
     final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(inboxItem: item)));
     if (result == true) {
+      // TODO, actually save things here
       setState(() {});
     }
   }

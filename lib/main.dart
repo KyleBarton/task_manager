@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:task_manager/app_dependencies.dart';
+import 'package:task_manager/result.dart';
 import 'package:task_manager/task_item.dart';
 import 'package:task_manager/task_item_page.dart';
+import 'package:task_manager/task_item_repository.dart';
 
 // Ok, next steps:
 // - Start adding a Dart repository layer that's separate from the Widgets
@@ -9,7 +13,11 @@ import 'package:task_manager/task_item_page.dart';
 // - Find a place for Projects?
 
 void main() {
-  runApp(const MyApp());
+  final TaskItemRepository taskItemRepository = TaskItemRepository();
+  runApp(Provider(
+    create: (_) => AppDependencies(taskItemRepository: taskItemRepository),
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -37,19 +45,28 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  late TaskItemRepository taskItemRepository;
+
   final List<TaskItem> _inboxItems = [];
+  final List<TaskItem> _testNextActions = [];
+  final List<TaskItem> _testWaitingFors = [];
+
   var viewStatus = TaskStatus.inbox;
 
-  final List<TaskItem> _testNextActions = [
-    TaskItem(title: "Next Action 1"),
-    TaskItem(title: "Next Action 2"),
-    TaskItem(title: "Next Action 3"),
-  ];
-  final List<TaskItem> _testWaitingFors = [
-    TaskItem(title: "Waiting For 1"),
-    TaskItem(title: "Waiting For 2"),
-    TaskItem(title: "Waiting For 3"),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    final appDependencies = context.appDependencies();
+    taskItemRepository = appDependencies.taskItemRepository;
+
+    _testNextActions.add(taskItemRepository.create(title: "Next Action 1").expect());
+    _testNextActions.add(taskItemRepository.create(title: "Next Action 2").expect());
+    _testNextActions.add(taskItemRepository.create(title: "Next Action 3").expect());
+
+    _testWaitingFors.add(taskItemRepository.create(title: "Waiting For 1").expect());
+    _testWaitingFors.add(taskItemRepository.create(title: "Waiting For 2").expect());
+    _testWaitingFors.add(taskItemRepository.create(title: "Waiting For 3").expect());
+  }
 
   Center _centerContent() {
     var items = _inboxItems;
@@ -123,7 +140,7 @@ class _MyHomePageState extends State<MyHomePage> {
               onSubmitted: (value) {
                 Navigator.of(context).pop();
                 setState(() {
-                  var newInboxItem = TaskItem(title: value);
+                  var newInboxItem = taskItemRepository.create(title: value).expect();
                   _inboxItems.add(newInboxItem);
                 });
                 final snackBar = SnackBar(content: const Text("Added to Inbox"));

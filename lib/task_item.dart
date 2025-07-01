@@ -7,9 +7,17 @@ enum TaskStatus {
 }
 
 class TaskItem {
-  TaskItem({required this.title, this.status = TaskStatus.inbox});
+  TaskItem.create({
+    required this.title,
+    required this.project,
+    required this.content,
+    required this.category,
+    required this.id,
+    required this.status,
+  });
   TaskStatus status;
   String title;
+  int id;
   String? content;
   String? project;
   String? category;
