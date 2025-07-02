@@ -23,4 +23,20 @@ void main() {
     assert (taskItem.content == retrievedTaskItem.content);
     assert (retrievedTaskItem.id == taskItem.id);
   });
+  test("Can update Task by Id", () {
+    final taskItem = taskItemRepository.create(title: "New Task").expect();
+    taskItem.project = "I included the project";
+    taskItem.status = TaskStatus.nextAction;
+    taskItem.category = "house-chores";
+    taskItem.content = "I added some content";
+
+    taskItemRepository.update(taskItem).expect();
+
+    final retrieved = taskItemRepository.getById(taskItem.id).expect();
+
+    assert (retrieved.project == taskItem.project);
+    assert (retrieved.status == taskItem.status);
+    assert (retrieved.category == taskItem.category);
+    assert (retrieved.content == taskItem.content);
+  });
 }

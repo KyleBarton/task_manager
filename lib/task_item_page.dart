@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:task_manager/app_dependencies.dart';
+import 'package:task_manager/result.dart';
 import 'package:task_manager/task_item.dart';
+import 'package:task_manager/task_item_repository.dart';
 
 class TaskItemPage extends StatefulWidget {
   final TaskItem inboxItem;
@@ -87,11 +90,22 @@ class TaskItemAction extends StatefulWidget {
 
 class _TaskItemActionState extends State<TaskItemAction> {
 
+  late TaskItemRepository _taskItemRepository;
+
+  @override
+  void initState() {
+    final appDependencies = context.appDependencies();
+    _taskItemRepository = appDependencies.taskItemRepository;
+    super.initState();
+  }
+
   Future<void> _navToTaskItem(TaskItem item) async {
     final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(inboxItem: item)));
     if (result == true) {
-      // TODO, actually save things here
-      setState(() {});
+      setState(() {
+        // TODO issue if it's not actually created?
+        _taskItemRepository.update(item).expect();
+      });
     }
   }
 

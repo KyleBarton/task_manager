@@ -7,8 +7,6 @@ import 'package:task_manager/task_item_page.dart';
 import 'package:task_manager/task_item_repository.dart';
 
 // Ok, next steps:
-// - Start adding a Dart repository layer that's separate from the Widgets
-// - Add testing
 // - Implement TODO statuses and make a good animation strategy for that
 // - Find a place for Projects?
 

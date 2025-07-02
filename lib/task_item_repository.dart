@@ -15,18 +15,10 @@ class TaskItemRepository {
 
   Result<TaskItem, RepositoryError> getById(int id) {
     if (_inMemoryTasks.containsKey(id)) {
-      return Ok(_inMemoryTasks[id]!);
+      return Ok(_inflate(_inMemoryTasks[id]!));
     } else {
       return Err(RepositoryError.notFound);
     }
-  }
-
-  // TODO error code as needed
-  int saveNewTask(TaskItem taskItem) {
-    _latestTaskId++;
-    taskItem.id = _latestTaskId;
-    _inMemoryTasks[_latestTaskId] = taskItem;
-    return _latestTaskId;
   }
 
   Result<TaskItem, RepositoryError> create({
@@ -37,8 +29,30 @@ class TaskItemRepository {
     TaskStatus status = TaskStatus.inbox})
   {
     _latestTaskId++;
+    // TODO taskitem.of?
     final TaskItem item = TaskItem.create(title: title, project: project, content: content, category: category, id: _latestTaskId, status: status);
     _inMemoryTasks[_latestTaskId] = item;
-    return Ok(item);
+    return Ok(_inflate(item));
+  }
+
+  Result<void, RepositoryError> update(TaskItem taskItem){
+    if (_inMemoryTasks.containsKey(taskItem.id)) {
+      _inMemoryTasks[taskItem.id] = _inflate(taskItem);
+      return Ok(null);
+    } else {
+      return Err(RepositoryError.notFound);
+    }
+  }
+  // Copying over to avoid in-memory pass-by-reference for now
+  // In a real storage scenario, the item will be serialized and this won't be an issue
+  _inflate(TaskItem item) {
+    return TaskItem.create(
+        title: item.title,
+        project: item.project,
+        content: item.content,
+        category: item.category,
+        id: item.id,
+        status: item.status
+    );
   }
 }
