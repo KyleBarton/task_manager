@@ -12,6 +12,8 @@ class TaskItemPage extends StatefulWidget {
   State<StatefulWidget> createState() => _TaskItemPageState();
 }
 
+// TODO I think a segmentedButton could be good for changing TODO status:
+// https://api.flutter.dev/flutter/material/SegmentedButton-class.html
 class _TaskItemPageState extends State<TaskItemPage> {
   late final TextEditingController _itemContentController;
   late final TextEditingController _itemProjectController;
@@ -115,6 +117,8 @@ class _TaskItemActionState extends State<TaskItemAction> {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           SizedBox(width: 30),
+          // TODO I think a listtile will be better here:
+          // https://api.flutter.dev/flutter/material/ListTile-class.html
           ActionChip(
             label: Text(widget.taskItem.title,
                 style: TextStyle(

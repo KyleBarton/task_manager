@@ -43,6 +43,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late TaskItemRepository taskItemRepository;
 
   final List<TaskItem> _inboxItems = [];
@@ -108,8 +109,11 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
     );
-
   }
+
+  void _openDrawer() => _scaffoldKey.currentState!.openDrawer();
+  void closeDrawer() => Navigator.of(context).pop();
+
   void _viewInbox() {
     setState(() {
       viewStatus = TaskStatus.inbox;
@@ -148,12 +152,60 @@ class _MyHomePageState extends State<MyHomePage> {
           );
         });
   }
+  int screenIndex = 0;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         backgroundColor: Colors.amber,
         title: Text(widget.title),
+      ),
+      drawer: NavigationDrawer(
+        onDestinationSelected: (int index) {
+          // TODO figure out how to close this after a beat
+          setState(() {
+            screenIndex = index;
+          });
+          Future.delayed(const Duration(milliseconds: 100), () {
+            closeDrawer();
+          });
+        },
+        selectedIndex: screenIndex,
+        children: [
+          NavigationDrawerDestination(
+              icon: Icon(Icons.all_inbox_outlined),
+              selectedIcon: Icon(Icons.all_inbox),
+              label: Text("All Tasks")
+          ),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(25, 10, 25, 10),
+            child: Divider(),
+          ),
+          NavigationDrawerDestination(
+              icon: Icon(Icons.build_outlined),
+              selectedIcon: Icon(Icons.build),
+              label: Text("Project1")
+          ),
+          NavigationDrawerDestination(
+              icon: Icon(Icons.build_outlined),
+              selectedIcon: Icon(Icons.build),
+              label: SizedBox(
+                width: 175,
+                  child: const Text(
+                    "Very long project which will almost certainly need to be clipped",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: false,
+                  )
+              )
+          ),
+          NavigationDrawerDestination(
+              icon: Icon(Icons.build_outlined),
+              selectedIcon: Icon(Icons.build),
+              label: Text("Project3")
+          ),
+        ],
       ),
       body: Column(
         children: [
