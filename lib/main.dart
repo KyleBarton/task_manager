@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:task_manager/app_dependencies.dart';
+import 'package:task_manager/project_nav_drawer.dart';
 import 'package:task_manager/result.dart';
 import 'package:task_manager/task_item.dart';
 import 'package:task_manager/task_item_page.dart';
@@ -111,9 +112,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _openDrawer() => _scaffoldKey.currentState!.openDrawer();
-  void closeDrawer() => Navigator.of(context).pop();
-
   void _viewInbox() {
     setState(() {
       viewStatus = TaskStatus.inbox;
@@ -152,7 +150,17 @@ class _MyHomePageState extends State<MyHomePage> {
           );
         });
   }
-  int screenIndex = 0;
+
+  int _screenIndex = 0;
+  _onDestinationSelected(int index) {
+    setState(() {
+      _screenIndex = index;
+    });
+    Future.delayed(const Duration(milliseconds: 100), () {
+      Navigator.of(context).pop();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -161,51 +169,14 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Colors.amber,
         title: Text(widget.title),
       ),
-      drawer: NavigationDrawer(
-        onDestinationSelected: (int index) {
-          // TODO figure out how to close this after a beat
-          setState(() {
-            screenIndex = index;
-          });
-          Future.delayed(const Duration(milliseconds: 100), () {
-            closeDrawer();
-          });
-        },
-        selectedIndex: screenIndex,
-        children: [
-          NavigationDrawerDestination(
-              icon: Icon(Icons.all_inbox_outlined),
-              selectedIcon: Icon(Icons.all_inbox),
-              label: Text("All Tasks")
-          ),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(25, 10, 25, 10),
-            child: Divider(),
-          ),
-          NavigationDrawerDestination(
-              icon: Icon(Icons.build_outlined),
-              selectedIcon: Icon(Icons.build),
-              label: Text("Project1")
-          ),
-          NavigationDrawerDestination(
-              icon: Icon(Icons.build_outlined),
-              selectedIcon: Icon(Icons.build),
-              label: SizedBox(
-                width: 175,
-                  child: const Text(
-                    "Very long project which will almost certainly need to be clipped",
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    softWrap: false,
-                  )
-              )
-          ),
-          NavigationDrawerDestination(
-              icon: Icon(Icons.build_outlined),
-              selectedIcon: Icon(Icons.build),
-              label: Text("Project3")
-          ),
-        ],
+      drawer: ProjectNavDrawer(
+          screenIndex: _screenIndex,
+          onDestinationSelected: _onDestinationSelected,
+          projectNavOptions: [
+            ProjectNavOption(title: "Project1"),
+            ProjectNavOption(title: "Very long project which will almost certainly need to be clipped"),
+            ProjectNavOption(title: "Project3"),
+          ],
       ),
       body: Column(
         children: [
@@ -235,4 +206,3 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
-
