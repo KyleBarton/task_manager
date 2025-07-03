@@ -4,7 +4,10 @@ import 'package:task_manager/task_item.dart';
 import 'package:task_manager/task_item_repository.dart';
 
 void main() {
-  final taskItemRepository = TaskItemRepository();
+  late TaskItemRepository taskItemRepository;
+  setUp(() {
+    taskItemRepository = TaskItemRepository();
+  });
   test("Can Save and Retrieve Task by Id", () {
 
     final taskItem = taskItemRepository.create(
@@ -38,5 +41,17 @@ void main() {
     assert (retrieved.status == taskItem.status);
     assert (retrieved.category == taskItem.category);
     assert (retrieved.content == taskItem.content);
+  });
+  test("Can get all tasks", () {
+    taskItemRepository.create(title: "Test Inbox", status: TaskStatus.inbox).expect();
+    taskItemRepository.create(title: "Test Next Action", status: TaskStatus.nextAction).expect();
+    taskItemRepository.create(title: "Test Waiting For", status: TaskStatus.waitingFor).expect();
+
+    final allTasks = taskItemRepository.getAll().expect();
+
+    assert (allTasks.length == 3);
+    assert (allTasks.where((item) => item.status == TaskStatus.inbox).length == 1);
+    assert (allTasks.where((item) => item.status == TaskStatus.nextAction).length == 1);
+    assert (allTasks.where((item) => item.status == TaskStatus.waitingFor).length == 1);
   });
 }

@@ -43,9 +43,17 @@ class TaskItemRepository {
       return Err(RepositoryError.notFound);
     }
   }
+
+  Result<List<TaskItem>, RepositoryError> getAll() {
+    return Ok(
+        _inMemoryTasks.entries
+            .map((entry) => _inflate(entry.value))
+            .toList()
+    );
+  }
   // Copying over to avoid in-memory pass-by-reference for now
   // In a real storage scenario, the item will be serialized and this won't be an issue
-  _inflate(TaskItem item) {
+  TaskItem _inflate(TaskItem item) {
     return TaskItem.create(
         title: item.title,
         project: item.project,
@@ -55,4 +63,89 @@ class TaskItemRepository {
         status: item.status
     );
   }
+
+  // TODO this is a temporary measure to give us some useful data at runtime
+  void createInitialTasks() {
+    List<TaskItem> nextActions = [
+      TaskItem.create(
+          title: "Research the foo",
+          project: "foo",
+          content: "do some online research for how to foo",
+          category: "online-research-15min",
+          id: 0,
+          status: TaskStatus.nextAction),
+      TaskItem.create(
+          title: "Do the foo",
+          project: "foo",
+          content: "Foo around the house",
+          category: "house-chores",
+          id: 0,
+          status: TaskStatus.nextAction),
+      TaskItem.create(
+          title: "Research the bar",
+          project: "bar",
+          content: "do some online research for how to bar",
+          category: "online-research-15min",
+          id: 0,
+          status: TaskStatus.nextAction),
+      TaskItem.create(
+          title: "Do the bar",
+          project: "bar",
+          content: "bar around the house",
+          category: "house-chores",
+          id: 0,
+          status: TaskStatus.nextAction),
+    ];
+    for (var task in nextActions) {
+      create(title: task.title, project: task.project, category: task.category, content: task.content, status: task.status);
+    }
+    List<TaskItem> waitingFors = [
+      TaskItem.create(
+          title: "Texted Z about the foo",
+          project: "foo",
+          content: "Z might know something about the foo",
+          category: "agenda-z",
+          id: 0,
+          status: TaskStatus.waitingFor),
+      TaskItem.create(
+          title: "Texted Z about the bar",
+          project: "bar",
+          content: "Z might know something about the bar",
+          category: "agenda-z",
+          id: 0,
+          status: TaskStatus.waitingFor),
+    ];
+    for (var task in waitingFors) {
+      create(title: task.title, project: task.project, category: task.category, content: task.content, status: task.status);
+    }
+    List<TaskItem> somedayMaybes = [
+      TaskItem.create(
+          title: "Write a book about foo",
+          project: "foo",
+          content: "it would be fun to write a book about what I've learned",
+          category: null,
+          id: 0,
+          status: TaskStatus.somedayMaybe),
+      TaskItem.create(
+          title: "Write a book about bar",
+          project: "bar",
+          content: "it would be fun to write a book about what I've learned",
+          category: null,
+          id: 0,
+          status: TaskStatus.somedayMaybe),
+    ];
+    for (var task in somedayMaybes) {
+      create(title: task.title, project: task.project, category: task.category, content: task.content, status: task.status);
+    }
+    List<TaskItem> inboxes = [
+      TaskItem.create(title: "Some stuff", project: null, content: null, category: null, id: 0, status: TaskStatus.inbox),
+      TaskItem.create(title: "Some other stuff", project: null, content: null, category: null, id: 0, status: TaskStatus.inbox),
+      TaskItem.create(title: "Inbox it", project: null, content: null, category: null, id: 0, status: TaskStatus.inbox),
+      TaskItem.create(title: "Moar stuff", project: null, content: null, category: null, id: 0, status: TaskStatus.inbox),
+    ];
+    for (var task in inboxes) {
+      create(title: task.title, project: task.project, category: task.category, content: task.content, status: task.status);
+    }
+  }
+
 }

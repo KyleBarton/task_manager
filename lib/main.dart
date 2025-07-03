@@ -9,7 +9,6 @@ import 'package:task_manager/task_item_repository.dart';
 
 // Ok, next steps:
 // - Implement TODO statuses and make a good animation strategy for that
-// - Find a place for Projects?
 
 void main() {
   final TaskItemRepository taskItemRepository = TaskItemRepository();
@@ -47,9 +46,8 @@ class _MyHomePageState extends State<MyHomePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late TaskItemRepository taskItemRepository;
 
-  final List<TaskItem> _inboxItems = [];
-  final List<TaskItem> _testNextActions = [];
-  final List<TaskItem> _testWaitingFors = [];
+  late final List<ProjectNavOption> _projects;
+  List<TaskItem> _activeTasks = [];
 
   var viewStatus = TaskStatus.inbox;
 
@@ -58,18 +56,24 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     final appDependencies = context.appDependencies();
     taskItemRepository = appDependencies.taskItemRepository;
+    taskItemRepository.createInitialTasks();
 
-    _testNextActions.add(taskItemRepository.create(title: "Next Action 1").expect());
-    _testNextActions.add(taskItemRepository.create(title: "Next Action 2").expect());
-    _testNextActions.add(taskItemRepository.create(title: "Next Action 3").expect());
+    final List<TaskItem> tasks = taskItemRepository.getAll().expect();
+    _activeTasks = tasks;
 
-    _testWaitingFors.add(taskItemRepository.create(title: "Waiting For 1").expect());
-    _testWaitingFors.add(taskItemRepository.create(title: "Waiting For 2").expect());
-    _testWaitingFors.add(taskItemRepository.create(title: "Waiting For 3").expect());
+
+    _projects = tasks
+        .map((t) => t.project)
+        .where((p) => p != null)
+        .toSet()
+        .map((projectName) => ProjectNavOption(title: projectName!))
+        .toList();
   }
 
   Center _centerContent() {
-    var items = _inboxItems;
+    var items = _activeTasks
+        .where((item) => item.status == TaskStatus.inbox)
+        .where((item) => item.project == _projectName || _projectName == null);
     var titleRow = Row(children: [
             // TODO probably want to solve this with containers in actuality
             SizedBox(width: 25),
@@ -77,7 +81,9 @@ class _MyHomePageState extends State<MyHomePage> {
             Text("Inbox", style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),)
           ],);
     if (viewStatus == TaskStatus.nextAction) {
-      items = _testNextActions;
+      items = _activeTasks
+          .where((item) => item.status == TaskStatus.nextAction)
+          .where((item) => item.project == _projectName || _projectName == null);
       titleRow = Row(children: [
         // TODO probably want to solve this with containers in actuality
         SizedBox(width: 25),
@@ -86,7 +92,9 @@ class _MyHomePageState extends State<MyHomePage> {
       ],);
     }
     if (viewStatus == TaskStatus.waitingFor) {
-      items = _testWaitingFors;
+      items = _activeTasks
+          .where((item) => item.status == TaskStatus.waitingFor)
+          .where((item) => item.project == _projectName || _projectName == null);
       titleRow = Row(children: [
         // TODO probably want to solve this with containers in actuality
         SizedBox(width: 25),
@@ -141,7 +149,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 Navigator.of(context).pop();
                 setState(() {
                   var newInboxItem = taskItemRepository.create(title: value).expect();
-                  _inboxItems.add(newInboxItem);
+                  _activeTasks.add(newInboxItem);
                 });
                 final snackBar = SnackBar(content: const Text("Added to Inbox"));
                 ScaffoldMessenger.of(context).showSnackBar(snackBar);
@@ -152,9 +160,16 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   int _screenIndex = 0;
+  String? _projectName;
   _onDestinationSelected(int index) {
     setState(() {
       _screenIndex = index;
+      if (index <= 0) {
+        _projectName = null;
+      }
+      else {
+        _projectName = _projects[index-1].title;
+      }
     });
     Future.delayed(const Duration(milliseconds: 100), () {
       Navigator.of(context).pop();
@@ -172,11 +187,7 @@ class _MyHomePageState extends State<MyHomePage> {
       drawer: ProjectNavDrawer(
           screenIndex: _screenIndex,
           onDestinationSelected: _onDestinationSelected,
-          projectNavOptions: [
-            ProjectNavOption(title: "Project1"),
-            ProjectNavOption(title: "Very long project which will almost certainly need to be clipped"),
-            ProjectNavOption(title: "Project3"),
-          ],
+          projectNavOptions: _projects,
       ),
       body: Column(
         children: [
