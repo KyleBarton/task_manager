@@ -111,7 +111,12 @@ class _MyHomePageState extends State<MyHomePage> {
               Column(
                 children: [
                   SizedBox(height: 5),
-                  TaskItemAction(taskItem: item)
+                  TaskItemAction(
+                    taskItem: item,
+                    stateCallback: (taskItem) => setState(() {
+                      taskItemRepository.update(taskItem);
+                    }),
+                  )
                 ],
               )
           ),

@@ -5,8 +5,8 @@ import 'package:task_manager/task_item.dart';
 import 'package:task_manager/task_item_repository.dart';
 
 class TaskItemPage extends StatefulWidget {
-  final TaskItem inboxItem;
-  const TaskItemPage({super.key, required this.inboxItem});
+  final TaskItem taskItem;
+  const TaskItemPage({super.key, required this.taskItem});
 
   @override
   State<StatefulWidget> createState() => _TaskItemPageState();
@@ -22,7 +22,7 @@ class _TaskItemPageState extends State<TaskItemPage> {
   @override
   void initState() {
     super.initState();
-    final inboxItem = widget.inboxItem;
+    final inboxItem = widget.taskItem;
     _itemTitleController = TextEditingController(text: inboxItem.title);
     _itemContentController = TextEditingController(text: inboxItem.content);
     _itemProjectController = TextEditingController(text: inboxItem.project);
@@ -62,7 +62,7 @@ class _TaskItemPageState extends State<TaskItemPage> {
           ElevatedButton(
               onPressed: () {
                 setState(() {
-                  widget.inboxItem
+                  widget.taskItem
                     ..title = _itemTitleController.text
                     ..content = _itemContentController.text
                     ..project = _itemProjectController.text
@@ -81,55 +81,37 @@ class _TaskItemPageState extends State<TaskItemPage> {
 
 // A contained widget that facilitates navigation to the TaskItem drill-down.
 // TODO maybe this goes in another file too?
-class TaskItemAction extends StatefulWidget {
+class TaskItemAction extends StatelessWidget {
   final TaskItem taskItem;
+  final void Function(TaskItem) stateCallback;
 
-  const TaskItemAction({super.key, required this.taskItem});
+  const TaskItemAction({super.key, required this.taskItem, required this.stateCallback});
 
-  @override
-  State<StatefulWidget> createState() => _TaskItemActionState();
-}
-
-class _TaskItemActionState extends State<TaskItemAction> {
-
-  late TaskItemRepository _taskItemRepository;
-
-  @override
-  void initState() {
-    final appDependencies = context.appDependencies();
-    _taskItemRepository = appDependencies.taskItemRepository;
-    super.initState();
-  }
-
-  Future<void> _navToTaskItem(TaskItem item) async {
-    final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(inboxItem: item)));
+  Future<void> _navToTaskItem(TaskItem item, BuildContext context) async {
+    final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(taskItem: item)));
     if (result == true) {
-      setState(() {
-        // TODO issue if it's not actually created?
-        _taskItemRepository.update(item).expect();
-      });
+      stateCallback(item);
     }
   }
 
   @override
   Widget build(BuildContext context) =>
-      Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          SizedBox(width: 30),
-          // TODO I think a listtile will be better here:
-          // https://api.flutter.dev/flutter/material/ListTile-class.html
-          ActionChip(
-            label: Text(widget.taskItem.title,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                )
-            ),
-            avatar: Icon(Icons.label_outline_rounded),
-            onPressed: () => _navToTaskItem(widget.taskItem),
-          )
-        ],
-      );
+    Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        SizedBox(width: 30),
+        // TODO I think a listtile will be better here:
+        // https://api.flutter.dev/flutter/material/ListTile-class.html
+        ActionChip(
+          label: Text(taskItem.title,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              )
+          ),
+          avatar: Icon(Icons.label_outline_rounded),
+          onPressed: () => _navToTaskItem(taskItem, context),
+        )
+      ],
+    );
 }
-
