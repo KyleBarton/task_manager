@@ -142,7 +142,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _showInboxModal() {
+  void _showCaptureModal() {
     showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -215,7 +215,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showInboxModal,
+        onPressed: _showCaptureModal,
         tooltip: 'Add to Inbox',
         child: const Icon(Icons.add),
       ),

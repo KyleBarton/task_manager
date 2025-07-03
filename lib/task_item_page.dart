@@ -1,73 +1,47 @@
 import 'package:flutter/material.dart';
-import 'package:task_manager/app_dependencies.dart';
-import 'package:task_manager/result.dart';
 import 'package:task_manager/task_item.dart';
-import 'package:task_manager/task_item_repository.dart';
 
-class TaskItemPage extends StatefulWidget {
+class TaskItemPage extends StatelessWidget {
   final TaskItem taskItem;
-  const TaskItemPage({super.key, required this.taskItem});
+  const TaskItemPage({
+    super.key,
+    required this.taskItem,
+  });
 
-  @override
-  State<StatefulWidget> createState() => _TaskItemPageState();
-}
-
-// TODO I think a segmentedButton could be good for changing TODO status:
-// https://api.flutter.dev/flutter/material/SegmentedButton-class.html
-class _TaskItemPageState extends State<TaskItemPage> {
-  late final TextEditingController _itemContentController;
-  late final TextEditingController _itemProjectController;
-  late final TextEditingController _itemCategoryController;
-  late final TextEditingController _itemTitleController;
-  @override
-  void initState() {
-    super.initState();
-    final inboxItem = widget.taskItem;
-    _itemTitleController = TextEditingController(text: inboxItem.title);
-    _itemContentController = TextEditingController(text: inboxItem.content);
-    _itemProjectController = TextEditingController(text: inboxItem.project);
-    _itemCategoryController = TextEditingController(text: inboxItem.category);
-  }
-
-  @override
-  void dispose() {
-    _itemContentController.dispose();
-    _itemCategoryController.dispose();
-    _itemProjectController.dispose();
-    _itemTitleController.dispose();
-    super.dispose();
-  }
-
+  // TODO I think a segmentedButton could be good for changing TODO status:
+  // https://api.flutter.dev/flutter/material/SegmentedButton-class.html
   @override
   Widget build(BuildContext context) {
+    final TextEditingController itemContentController = TextEditingController(text: taskItem.content);
+    final TextEditingController itemProjectController = TextEditingController(text: taskItem.project);
+    final TextEditingController itemCategoryController = TextEditingController(text: taskItem.category);
+    final TextEditingController itemTitleController = TextEditingController(text: taskItem.title);
     return Scaffold(
       appBar: AppBar(
-        title: TextField(controller: _itemTitleController),
+        title: TextField(controller: itemTitleController),
         backgroundColor: Colors.amber,
       ),
       body: Column(
         children: [
           TextField(
-            controller: _itemContentController,
+            controller: itemContentController,
             decoration: const InputDecoration(labelText: "Content"),
           ),
           TextField(
-            controller: _itemProjectController,
+            controller: itemProjectController,
             decoration: const InputDecoration(labelText: "Project"),
           ),
           TextField(
-            controller: _itemCategoryController,
+            controller: itemCategoryController,
             decoration: const InputDecoration(labelText: "Category"),
           ),
           ElevatedButton(
               onPressed: () {
-                setState(() {
-                  widget.taskItem
-                    ..title = _itemTitleController.text
-                    ..content = _itemContentController.text
-                    ..project = _itemProjectController.text
-                    ..category = _itemCategoryController.text;
-                });
+                taskItem
+                  ..title = itemTitleController.text
+                  ..content = itemContentController.text
+                  ..project = itemProjectController.text
+                  ..category = itemCategoryController.text;
                 Navigator.pop(context, true);
               },
               child: Icon(Icons.save))
@@ -75,9 +49,7 @@ class _TaskItemPageState extends State<TaskItemPage> {
       ),
     );
   }
-
 }
-
 
 // A contained widget that facilitates navigation to the TaskItem drill-down.
 // TODO maybe this goes in another file too?
