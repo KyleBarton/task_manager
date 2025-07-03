@@ -104,23 +104,27 @@ class _MyHomePageState extends State<MyHomePage> {
                   SizedBox(height: 5),
                   // TODO I think a listtile will be better here:
                   // https://api.flutter.dev/flutter/material/ListTile-class.html
-                  ActionChip(
-                    label: Text(item.title,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        )
-                    ),
-                    avatar: Icon(Icons.label_outline_rounded),
-                    onPressed: () async {
-                      final updated = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(taskItem: item)));
-                      if (updated == true) {
-                        setState((){
-                          taskItemRepository.update(item);
-                        });
-                      }
-                    },
-                  )
+                  Hero(
+                      tag: "hero-item-id-${item.id}",
+                      child: Material(
+                        child: ListTile(
+                          title: Text(item.title,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                          onTap: () async {
+                            final updated = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(taskItem: item)));
+                            if (updated == true) {
+                              setState((){
+                                taskItemRepository.update(item);
+                              });
+                            }
+                          },
+                        ),
+                      )
+                  ),
                 ],
               )
           ),

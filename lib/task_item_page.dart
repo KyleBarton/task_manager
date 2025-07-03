@@ -18,7 +18,13 @@ class TaskItemPage extends StatelessWidget {
     final TextEditingController itemTitleController = TextEditingController(text: taskItem.title);
     return Scaffold(
       appBar: AppBar(
-        title: TextField(controller: itemTitleController),
+        title: Hero(
+            tag: "hero-item-id-${taskItem.id}",
+            child: Material(
+                type: MaterialType.transparency,
+                child: TextField(controller: itemTitleController)
+            )
+        ),
         backgroundColor: Colors.amber,
       ),
       body: Column(
