@@ -46,10 +46,10 @@ class _MyHomePageState extends State<MyHomePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late TaskItemRepository taskItemRepository;
 
-  late final List<ProjectNavOption> _projects;
+  List<ProjectNavOption> _projects = [];
   List<TaskItem> _activeTasks = [];
 
-  var viewStatus = TaskStatus.inbox;
+  var _viewStatus = TaskStatus.inbox;
 
   @override
   void initState() {
@@ -58,11 +58,13 @@ class _MyHomePageState extends State<MyHomePage> {
     taskItemRepository = appDependencies.taskItemRepository;
     taskItemRepository.createInitialTasks();
 
-    final List<TaskItem> tasks = taskItemRepository.getAll().expect();
-    _activeTasks = tasks;
+    _activeTasks = taskItemRepository
+        .getAll()
+        .expect()
+        .where((item) => item.status == _viewStatus).toList();
 
 
-    _projects = tasks
+    _projects = taskItemRepository.getAll().expect()
         .map((t) => t.project)
         .where((p) => p != null)
         .toSet()
@@ -70,52 +72,54 @@ class _MyHomePageState extends State<MyHomePage> {
         .toList();
   }
 
+  // TODO find a place for this
+  final Map<TaskStatus, String> statusTitles = {
+    TaskStatus.inbox: "Inbox",
+    TaskStatus.waitingFor: "Waiting For",
+    TaskStatus.nextAction: "Next Action",
+  };
+
+  final Map<TaskStatus, IconData> statusIcons = {
+    TaskStatus.inbox: Icons.inbox_rounded,
+    TaskStatus.waitingFor: Icons.timer_rounded,
+    TaskStatus.nextAction: Icons.pending_actions_rounded,
+  };
+
   Center _centerContent() {
-    var items = _activeTasks
-        .where((item) => item.status == TaskStatus.inbox)
-        .where((item) => item.project == _projectName || _projectName == null);
-    var titleRow = Row(children: [
-            // TODO probably want to solve this with containers in actuality
-            SizedBox(width: 25),
-            Icon(Icons.inbox_rounded, size: 40,),
-            Text("Inbox", style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),)
-          ],);
-    if (viewStatus == TaskStatus.nextAction) {
-      items = _activeTasks
-          .where((item) => item.status == TaskStatus.nextAction)
-          .where((item) => item.project == _projectName || _projectName == null);
-      titleRow = Row(children: [
-        // TODO probably want to solve this with containers in actuality
-        SizedBox(width: 25),
-        Icon(Icons.pending_actions_rounded, size: 40,),
-        Text("Next Actions", style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),)
-      ],);
-    }
-    if (viewStatus == TaskStatus.waitingFor) {
-      items = _activeTasks
-          .where((item) => item.status == TaskStatus.waitingFor)
-          .where((item) => item.project == _projectName || _projectName == null);
-      titleRow = Row(children: [
-        // TODO probably want to solve this with containers in actuality
-        SizedBox(width: 25),
-        Icon(Icons.timer_rounded, size: 40,),
-        Text("Waiting For", style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),)
-      ],);
-    }
+    var titleRowName = statusTitles[_viewStatus] ?? "Inbox";
+    var titleRowIcon = statusIcons[_viewStatus] ?? Icons.inbox_rounded;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          titleRow,
-          ...items.map((item) =>
+          Row(children: [
+            // TODO probably want to solve this with containers in actuality
+            SizedBox(width: 25),
+            Icon(titleRowIcon, size: 40,),
+            Text(titleRowName, style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),)
+          ],),
+          ..._activeTasks.map((item) =>
               Column(
                 children: [
                   SizedBox(height: 5),
-                  TaskItemAction(
-                    taskItem: item,
-                    stateCallback: (taskItem) => setState(() {
-                      taskItemRepository.update(taskItem);
-                    }),
+                  // TODO I think a listtile will be better here:
+                  // https://api.flutter.dev/flutter/material/ListTile-class.html
+                  ActionChip(
+                    label: Text(item.title,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        )
+                    ),
+                    avatar: Icon(Icons.label_outline_rounded),
+                    onPressed: () async {
+                      final updated = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(taskItem: item)));
+                      if (updated == true) {
+                        setState((){
+                          taskItemRepository.update(item);
+                        });
+                      }
+                    },
                   )
                 ],
               )
@@ -127,19 +131,49 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _viewInbox() {
     setState(() {
-      viewStatus = TaskStatus.inbox;
+      _viewStatus = TaskStatus.inbox;
     });
   }
   void _viewNextActions() {
     setState(() {
-      viewStatus = TaskStatus.nextAction;
+      _viewStatus = TaskStatus.nextAction;
     });
   }
 
   void _viewWaitingFor() {
     setState(() {
-      viewStatus = TaskStatus.waitingFor;
+      _viewStatus = TaskStatus.waitingFor;
     });
+  }
+
+  @override
+  void setState(VoidCallback fn) {
+    _setTaskState(fn);
+    super.setState(fn);
+  }
+
+  void _setTaskState(void Function()? stateFunc) {
+    if (stateFunc != null){
+      stateFunc();
+    }
+    // project logic
+    _projects = taskItemRepository.getAll().expect()
+        .map((t) => t.project)
+        .where((p) => p != null && p != "")
+        .toSet()
+        .map((projectName) => ProjectNavOption(title: projectName!))
+        .toList();
+    // If you've removed everything from the project, then it won't show up on the project list, and the name should be null.
+    if (!_projects.any((p) => p.title == _projectName)) {
+      _projectName = null;
+      _screenIndex = 0;
+      // Gotta call it again because I've changed _projectName. Ugh
+    }
+
+    _activeTasks = taskItemRepository.getAll()
+        .expect()
+        .where((item) => item.status == _viewStatus)
+        .where((item) => item.project == _projectName || _projectName == null).toList();
   }
 
   void _showCaptureModal() {
@@ -153,8 +187,7 @@ class _MyHomePageState extends State<MyHomePage> {
               onSubmitted: (value) {
                 Navigator.of(context).pop();
                 setState(() {
-                  var newInboxItem = taskItemRepository.create(title: value).expect();
-                  _activeTasks.add(newInboxItem);
+                  taskItemRepository.create(title: value).expect();
                 });
                 final snackBar = SnackBar(content: const Text("Added to Inbox"));
                 ScaffoldMessenger.of(context).showSnackBar(snackBar);
