@@ -46,7 +46,6 @@ class _MyHomePageState extends State<MyHomePage> {
   late TaskItemRepository taskItemRepository;
 
   List<ProjectNavOption> _projects = [];
-  List<TaskItem> _activeTasks = [];
   Set<TaskStatus> _activeStatuses = {};
 
   @override
@@ -55,10 +54,6 @@ class _MyHomePageState extends State<MyHomePage> {
     final appDependencies = context.appDependencies();
     taskItemRepository = appDependencies.taskItemRepository;
     taskItemRepository.createInitialTasks();
-
-    _activeTasks = taskItemRepository
-        .getAll()
-        .expect();
 
     _projects = taskItemRepository.getAll().expect()
         .map((t) => t.project)
@@ -81,12 +76,12 @@ class _MyHomePageState extends State<MyHomePage> {
     TaskStatus.nextAction: Icons.pending_actions_rounded,
   };
 
-  Widget _taskListView() {
+  Widget _taskListView(List<TaskItem> tasks) {
     return Expanded(
         child: ListView(
           shrinkWrap: true,
           children: <Widget>[
-            ..._activeTasks.map((item) =>
+            ...tasks.map((item) =>
                 Column(
                   children: [
                     SizedBox(height: 5),
@@ -128,6 +123,7 @@ class _MyHomePageState extends State<MyHomePage> {
     super.setState(fn);
   }
 
+  // Goal should be to remove this - extract logic to time of render instead
   void _setTaskState(void Function()? stateFunc) {
     if (stateFunc != null){
       stateFunc();
@@ -145,13 +141,8 @@ class _MyHomePageState extends State<MyHomePage> {
       _screenIndex = 0;
       // Gotta call it again because I've changed _projectName. Ugh
     }
-
-    // TODO order by: inbox, nextAction, waitingFor, someday/Maybe
-    // TODO order by project as well?
-    _activeTasks = taskItemRepository.getAll()
-        .expect()
-        .where((item) => _activeStatuses.contains(item.status) || _activeStatuses.isEmpty)
-        .where((item) => item.project == _projectName || _projectName == null).toList();
+    // Recompute the screenindex, as projects may have changed
+    _screenIndex = _projects.indexWhere((p) => p.title == _projectName) + 1;
   }
 
   void _showCaptureModal() {
@@ -184,6 +175,7 @@ class _MyHomePageState extends State<MyHomePage> {
         _projectName = null;
       }
       else {
+        // Ugh this logic is hard
         _projectName = _projects[index-1].title;
       }
     });
@@ -251,7 +243,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ...titleRowIcons.map((titleRowIcon) => Icon(titleRowIcon, size: 40,)),
             ]
           ),
-          _taskListView(),
+          _taskListView(_activeTasks()),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -260,5 +252,14 @@ class _MyHomePageState extends State<MyHomePage> {
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  List<TaskItem> _activeTasks() {
+    // TODO order by: inbox, nextAction, waitingFor, someday/Maybe
+    // TODO order by project as well?
+    return taskItemRepository.getAll()
+        .expect() // TODO handle error
+        .where((item) => _activeStatuses.contains(item.status) || _activeStatuses.isEmpty)
+        .where((item) => item.project == _projectName || _projectName == null).toList();
   }
 }
