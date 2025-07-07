@@ -29,14 +29,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.black),
       ),
-      home: const MyHomePage(title: 'Task Management (WIP)'),
+      home: const MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-  final String title;
+  const MyHomePage({super.key});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -48,8 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<ProjectNavOption> _projects = [];
   List<TaskItem> _activeTasks = [];
-
-  var _viewStatus = TaskStatus.inbox;
+  Set<TaskStatus> _activeStatuses = {};
 
   @override
   void initState() {
@@ -60,9 +58,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     _activeTasks = taskItemRepository
         .getAll()
-        .expect()
-        .where((item) => item.status == _viewStatus).toList();
-
+        .expect();
 
     _projects = taskItemRepository.getAll().expect()
         .map((t) => t.project)
@@ -85,69 +81,45 @@ class _MyHomePageState extends State<MyHomePage> {
     TaskStatus.nextAction: Icons.pending_actions_rounded,
   };
 
-  Center _centerContent() {
-    var titleRowName = statusTitles[_viewStatus] ?? "Inbox";
-    var titleRowIcon = statusIcons[_viewStatus] ?? Icons.inbox_rounded;
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Row(children: [
-            // TODO probably want to solve this with containers in actuality
-            SizedBox(width: 25),
-            Icon(titleRowIcon, size: 40,),
-            Text(titleRowName, style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),)
-          ],),
-          ..._activeTasks.map((item) =>
-              Column(
-                children: [
-                  SizedBox(height: 5),
-                  // TODO I think a listtile will be better here:
-                  // https://api.flutter.dev/flutter/material/ListTile-class.html
-                  Hero(
-                      tag: "hero-item-id-${item.id}",
-                      child: Material(
-                        child: ListTile(
-                          title: Text(item.title,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
+  Widget _taskListView() {
+    return Expanded(
+        child: ListView(
+          shrinkWrap: true,
+          children: <Widget>[
+            ..._activeTasks.map((item) =>
+                Column(
+                  children: [
+                    SizedBox(height: 5),
+                    // TODO I think a listtile will be better here:
+                    // https://api.flutter.dev/flutter/material/ListTile-class.html
+                    Hero(
+                        tag: "hero-item-id-${item.id}",
+                        child: Card(
+                          child: ListTile(
+                            title: Text(item.title,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
                             ),
+                            subtitle: Text(item.status.toString()),
+                            onTap: () async {
+                              final updated = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(taskItem: item)));
+                              if (updated == true) {
+                                setState((){
+                                  taskItemRepository.update(item);
+                                });
+                              }
+                            },
                           ),
-                          onTap: () async {
-                            final updated = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(taskItem: item)));
-                            if (updated == true) {
-                              setState((){
-                                taskItemRepository.update(item);
-                              });
-                            }
-                          },
-                        ),
-                      )
-                  ),
-                ],
-              )
-          ),
-        ],
-      ),
+                        )
+                    ),
+                  ],
+                )
+            ),
+          ],
+        )
     );
-  }
-
-  void _viewInbox() {
-    setState(() {
-      _viewStatus = TaskStatus.inbox;
-    });
-  }
-  void _viewNextActions() {
-    setState(() {
-      _viewStatus = TaskStatus.nextAction;
-    });
-  }
-
-  void _viewWaitingFor() {
-    setState(() {
-      _viewStatus = TaskStatus.waitingFor;
-    });
   }
 
   @override
@@ -174,9 +146,11 @@ class _MyHomePageState extends State<MyHomePage> {
       // Gotta call it again because I've changed _projectName. Ugh
     }
 
+    // TODO order by: inbox, nextAction, waitingFor, someday/Maybe
+    // TODO order by project as well?
     _activeTasks = taskItemRepository.getAll()
         .expect()
-        .where((item) => item.status == _viewStatus)
+        .where((item) => _activeStatuses.contains(item.status) || _activeStatuses.isEmpty)
         .where((item) => item.project == _projectName || _projectName == null).toList();
   }
 
@@ -220,11 +194,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    var titleRowIcons = _activeStatuses.map((status) => statusIcons[status]).where((s) => s != null).toList();
+    if (_activeStatuses.isEmpty) {
+      titleRowIcons = statusIcons.values.toList();
+    }
+
+    var pageTitle = _projectName ?? "All Tasks";
+
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
         backgroundColor: Colors.amber,
-        title: Text(widget.title),
+        title: Text(pageTitle),
       ),
       drawer: ProjectNavDrawer(
           screenIndex: _screenIndex,
@@ -233,22 +214,44 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton(
-                  onPressed: _viewInbox,
-                  child: Text("Inbox")),
-              ElevatedButton(
-                  onPressed: _viewNextActions,
-                  child: Text("Next Actions")),
-              ElevatedButton(
-                  onPressed: _viewWaitingFor,
-                  child: Text("Waiting For")),
+          SizedBox(height: 15),
+          SegmentedButton<TaskStatus>(
+            onSelectionChanged: (Set<TaskStatus> newSelection) {
+              setState(() {
+                _activeStatuses = newSelection;
+              });
+            },
+            segments: [
+              ButtonSegment(
+                value: TaskStatus.inbox,
+                label: Text(TaskStatus.inbox.toString()),
+              ),
+              ButtonSegment(
+                value: TaskStatus.nextAction,
+                label: Text(TaskStatus.nextAction.toString()),
+              ),
+              ButtonSegment(
+                value: TaskStatus.waitingFor,
+                label: Text(TaskStatus.waitingFor.toString()),
+              ),
+              ButtonSegment(
+                value: TaskStatus.somedayMaybe,
+                label: Text(TaskStatus.somedayMaybe.toString()),
+              ),
             ],
+            selected: _activeStatuses,
+            emptySelectionAllowed: true,
+            multiSelectionEnabled: true,
           ),
-          SizedBox(height: 50),
-          _centerContent(),
+          SizedBox(height: 25),
+          Row(
+            children: [
+            // TODO probably want to solve this with containers in actuality
+            SizedBox(width: 25),
+            ...titleRowIcons.map((titleRowIcon) => Icon(titleRowIcon, size: 40,)),
+            ]
+          ),
+          _taskListView(),
         ],
       ),
       floatingActionButton: FloatingActionButton(

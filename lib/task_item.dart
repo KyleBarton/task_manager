@@ -3,7 +3,18 @@ enum TaskStatus {
   nextAction,
   waitingFor,
   somedayMaybe,
-  done,
+  done;
+
+  @override
+  String toString() {
+    switch (this) {
+      case TaskStatus.inbox: return "Inbox";
+      case TaskStatus.nextAction: return "Next Action";
+      case TaskStatus.waitingFor: return "Waiting For";
+      case TaskStatus.somedayMaybe: return "Someday/Maybe";
+      case TaskStatus.done: return "Done";
+      }
+  }
 }
 
 class TaskItem {

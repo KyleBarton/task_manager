@@ -29,6 +29,24 @@ class TaskItemPage extends StatelessWidget {
       ),
       body: Column(
         children: [
+          SegmentedButton<TaskStatus>(segments: [
+            ButtonSegment(
+              value: TaskStatus.inbox,
+              label: Text(TaskStatus.inbox.toString()),
+            ),
+            ButtonSegment(
+              value: TaskStatus.nextAction,
+              label: Text(TaskStatus.nextAction.toString()),
+            ),
+            ButtonSegment(
+              value: TaskStatus.waitingFor,
+              label: Text(TaskStatus.waitingFor.toString()),
+            ),
+            ButtonSegment(
+              value: TaskStatus.somedayMaybe,
+              label: Text(TaskStatus.somedayMaybe.toString()),
+            ),
+          ], selected: {TaskStatus.inbox}),
           TextField(
             controller: itemContentController,
             decoration: const InputDecoration(labelText: "Content"),
