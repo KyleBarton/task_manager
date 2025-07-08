@@ -63,17 +63,11 @@ class _MyHomePageState extends State<MyHomePage> {
         .toList();
   }
 
-  // TODO find a place for this
-  final Map<TaskStatus, String> statusTitles = {
-    TaskStatus.inbox: "Inbox",
-    TaskStatus.waitingFor: "Waiting For",
-    TaskStatus.nextAction: "Next Action",
-  };
-
   final Map<TaskStatus, IconData> statusIcons = {
     TaskStatus.inbox: Icons.inbox_rounded,
-    TaskStatus.waitingFor: Icons.timer_rounded,
-    TaskStatus.nextAction: Icons.pending_actions_rounded,
+    TaskStatus.nextAction: Icons.check_box_rounded,
+    TaskStatus.waitingFor: Icons.watch_rounded,
+    TaskStatus.somedayMaybe: Icons.ac_unit_rounded,
   };
 
   Widget _taskListView(List<TaskItem> tasks) {
@@ -99,10 +93,11 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                             subtitle: Text(item.status.toString()),
                             onTap: () async {
-                              final updated = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(taskItem: item)));
+                              final updated = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(item: item)));
                               if (updated == true) {
                                 setState((){
                                   taskItemRepository.update(item);
+                                  _activeStatuses = {item.status};
                                 });
                               }
                             },
@@ -214,21 +209,26 @@ class _MyHomePageState extends State<MyHomePage> {
               });
             },
             segments: [
+              // TODO gotta figure out how to make this look better
               ButtonSegment(
                 value: TaskStatus.inbox,
                 label: Text(TaskStatus.inbox.toString()),
+                // icon: Icon(statusIcons[TaskStatus.inbox]),
               ),
               ButtonSegment(
                 value: TaskStatus.nextAction,
                 label: Text(TaskStatus.nextAction.toString()),
+                // icon: Icon(statusIcons[TaskStatus.nextAction]),
               ),
               ButtonSegment(
                 value: TaskStatus.waitingFor,
                 label: Text(TaskStatus.waitingFor.toString()),
+                // icon: Icon(statusIcons[TaskStatus.waitingFor]),
               ),
               ButtonSegment(
                 value: TaskStatus.somedayMaybe,
                 label: Text(TaskStatus.somedayMaybe.toString()),
+                // icon: Icon(statusIcons[TaskStatus.somedayMaybe]),
               ),
             ],
             selected: _activeStatuses,
@@ -236,13 +236,6 @@ class _MyHomePageState extends State<MyHomePage> {
             multiSelectionEnabled: true,
           ),
           SizedBox(height: 25),
-          Row(
-            children: [
-            // TODO probably want to solve this with containers in actuality
-            SizedBox(width: 25),
-            ...titleRowIcons.map((titleRowIcon) => Icon(titleRowIcon, size: 40,)),
-            ]
-          ),
           _taskListView(_activeTasks()),
         ],
       ),

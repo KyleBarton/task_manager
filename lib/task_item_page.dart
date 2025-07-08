@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:task_manager/task_item.dart';
 
-class TaskItemPage extends StatelessWidget {
-  final TaskItem taskItem;
+
+class TaskItemPage extends StatefulWidget {
+  final TaskItem item;
   const TaskItemPage({
     super.key,
-    required this.taskItem,
+    required this.item,
   });
 
-  // TODO I think a segmentedButton could be good for changing TODO status:
-  // https://api.flutter.dev/flutter/material/SegmentedButton-class.html
+  @override
+  State<StatefulWidget> createState() => _TaskItemPageState();
+
+}
+
+class _TaskItemPageState extends State<TaskItemPage> {
   @override
   Widget build(BuildContext context) {
+    var taskItem = widget.item;
     final TextEditingController itemContentController = TextEditingController(text: taskItem.content);
     final TextEditingController itemProjectController = TextEditingController(text: taskItem.project);
     final TextEditingController itemCategoryController = TextEditingController(text: taskItem.category);
@@ -29,24 +35,32 @@ class TaskItemPage extends StatelessWidget {
       ),
       body: Column(
         children: [
-          SegmentedButton<TaskStatus>(segments: [
-            ButtonSegment(
-              value: TaskStatus.inbox,
-              label: Text(TaskStatus.inbox.toString()),
-            ),
-            ButtonSegment(
-              value: TaskStatus.nextAction,
-              label: Text(TaskStatus.nextAction.toString()),
-            ),
-            ButtonSegment(
-              value: TaskStatus.waitingFor,
-              label: Text(TaskStatus.waitingFor.toString()),
-            ),
-            ButtonSegment(
-              value: TaskStatus.somedayMaybe,
-              label: Text(TaskStatus.somedayMaybe.toString()),
-            ),
-          ], selected: {TaskStatus.inbox}),
+          SizedBox(height: 15),
+          SegmentedButton<TaskStatus>(
+            segments: [
+              ButtonSegment(
+                value: TaskStatus.inbox,
+                label: Text(TaskStatus.inbox.toString()),
+              ),
+              ButtonSegment(
+                value: TaskStatus.nextAction,
+                label: Text(TaskStatus.nextAction.toString()),
+              ),
+              ButtonSegment(
+                value: TaskStatus.waitingFor,
+                label: Text(TaskStatus.waitingFor.toString()),
+              ),
+              ButtonSegment(
+                value: TaskStatus.somedayMaybe,
+                label: Text(TaskStatus.somedayMaybe.toString()),
+              ),
+            ],
+            selected: {taskItem.status},
+            emptySelectionAllowed: false,
+            onSelectionChanged: (selection) => setState(() {
+              taskItem.status = selection.first;
+            }),
+          ),
           TextField(
             controller: itemContentController,
             decoration: const InputDecoration(labelText: "Content"),
