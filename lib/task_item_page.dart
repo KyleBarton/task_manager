@@ -15,6 +15,14 @@ class TaskItemPage extends StatefulWidget {
 }
 
 class _TaskItemPageState extends State<TaskItemPage> {
+
+  final Map<TaskStatus, IconData> _statusIcons = {
+    TaskStatus.inbox: Icons.inbox_rounded,
+    TaskStatus.nextAction: Icons.check_box_rounded,
+    TaskStatus.waitingFor: Icons.watch_rounded,
+    TaskStatus.somedayMaybe: Icons.ac_unit_rounded,
+  };
+
   @override
   Widget build(BuildContext context) {
     var taskItem = widget.item;
@@ -37,26 +45,38 @@ class _TaskItemPageState extends State<TaskItemPage> {
         children: [
           SizedBox(height: 15),
           SegmentedButton<TaskStatus>(
+            style: SegmentedButton.styleFrom(
+              animationDuration: Duration(seconds: 1),
+              backgroundColor: Colors.white,
+              selectedBackgroundColor: Colors.amber,
+              iconSize: 30.0,
+              padding: EdgeInsetsGeometry.only(left: 10.0),
+            ),
             segments: [
               ButtonSegment(
                 value: TaskStatus.inbox,
-                label: Text(TaskStatus.inbox.toString()),
+                label: Text(""),
+                icon: Icon(_statusIcons[TaskStatus.inbox]),
               ),
               ButtonSegment(
                 value: TaskStatus.nextAction,
-                label: Text(TaskStatus.nextAction.toString()),
+                label: Text(""),
+                icon: Icon(_statusIcons[TaskStatus.nextAction]),
               ),
               ButtonSegment(
                 value: TaskStatus.waitingFor,
-                label: Text(TaskStatus.waitingFor.toString()),
+                label: Text(""),
+                icon: Icon(_statusIcons[TaskStatus.waitingFor]),
               ),
               ButtonSegment(
                 value: TaskStatus.somedayMaybe,
-                label: Text(TaskStatus.somedayMaybe.toString()),
+                label: Text(""),
+                icon: Icon(_statusIcons[TaskStatus.somedayMaybe]),
               ),
             ],
             selected: {taskItem.status},
             emptySelectionAllowed: false,
+            showSelectedIcon: false,
             onSelectionChanged: (selection) => setState(() {
               taskItem.status = selection.first;
             }),

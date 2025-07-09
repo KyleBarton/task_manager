@@ -63,7 +63,7 @@ class _MyHomePageState extends State<MyHomePage> {
         .toList();
   }
 
-  final Map<TaskStatus, IconData> statusIcons = {
+  final Map<TaskStatus, IconData> _statusIcons = {
     TaskStatus.inbox: Icons.inbox_rounded,
     TaskStatus.nextAction: Icons.check_box_rounded,
     TaskStatus.waitingFor: Icons.watch_rounded,
@@ -181,9 +181,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    var titleRowIcons = _activeStatuses.map((status) => statusIcons[status]).where((s) => s != null).toList();
+    var titleRowIcons = _activeStatuses.map((status) => _statusIcons[status]).where((s) => s != null).toList();
     if (_activeStatuses.isEmpty) {
-      titleRowIcons = statusIcons.values.toList();
+      titleRowIcons = _statusIcons.values.toList();
     }
 
     var pageTitle = _projectName ?? "All Tasks";
@@ -203,32 +203,39 @@ class _MyHomePageState extends State<MyHomePage> {
         children: [
           SizedBox(height: 15),
           SegmentedButton<TaskStatus>(
+            style: SegmentedButton.styleFrom(
+              animationDuration: Duration(seconds: 1),
+              backgroundColor: Colors.white,
+              selectedBackgroundColor: Colors.amber,
+              iconSize: 30.0,
+              padding: EdgeInsetsGeometry.only(left: 10.0),
+            ),
             onSelectionChanged: (Set<TaskStatus> newSelection) {
               setState(() {
                 _activeStatuses = newSelection;
               });
             },
+            showSelectedIcon: false,
             segments: [
-              // TODO gotta figure out how to make this look better
               ButtonSegment(
                 value: TaskStatus.inbox,
-                label: Text(TaskStatus.inbox.toString()),
-                // icon: Icon(statusIcons[TaskStatus.inbox]),
+                label: Text(""),
+                icon: Icon(_statusIcons[TaskStatus.inbox]),
               ),
               ButtonSegment(
                 value: TaskStatus.nextAction,
-                label: Text(TaskStatus.nextAction.toString()),
-                // icon: Icon(statusIcons[TaskStatus.nextAction]),
+                label: Text(""),
+                icon: Icon(_statusIcons[TaskStatus.nextAction]),
               ),
               ButtonSegment(
                 value: TaskStatus.waitingFor,
-                label: Text(TaskStatus.waitingFor.toString()),
-                // icon: Icon(statusIcons[TaskStatus.waitingFor]),
+                label: Text(""),
+                icon: Icon(_statusIcons[TaskStatus.waitingFor]),
               ),
               ButtonSegment(
                 value: TaskStatus.somedayMaybe,
-                label: Text(TaskStatus.somedayMaybe.toString()),
-                // icon: Icon(statusIcons[TaskStatus.somedayMaybe]),
+                label: Text(""),
+                icon: Icon(_statusIcons[TaskStatus.somedayMaybe]),
               ),
             ],
             selected: _activeStatuses,
