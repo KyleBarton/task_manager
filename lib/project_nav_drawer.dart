@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:task_manager/project_page.dart';
 
 class ProjectNavOption {
   const ProjectNavOption({
@@ -59,6 +60,26 @@ class ProjectNavDrawer extends StatelessWidget {
           child: Divider(),
         ),
         ...projectNavOptions.map((navOption) => _navDrawerProjectOption(navOption)),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(25, 10, 25, 10),
+          child: Divider(),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ProjectPage()));
+              },
+              child: Row(
+                children: [
+                  Text("New "),
+                  Icon(Icons.add)
+                ],
+              ),
+            ),
+          ],
+        )
       ],
     );
   }

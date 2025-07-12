@@ -76,6 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
           shrinkWrap: true,
           children: <Widget>[
             ...tasks.map((item) =>
+                // TODO duplicated
                 Column(
                   children: [
                     SizedBox(height: 5),

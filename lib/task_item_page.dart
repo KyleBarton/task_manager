@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:task_manager/task_item.dart';
 
 
+// Ok, clients need a couple of niceties here:
+// focusTitle - whether to put the cursor on the title at start
+// allowInbox - whether to allow the item to be in an inbox status (default to true). Should be false when called from a project perspective
 class TaskItemPage extends StatefulWidget {
   final TaskItem item;
   const TaskItemPage({
