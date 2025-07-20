@@ -42,7 +42,6 @@ class _MyHomePageState extends State<MyHomePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late TaskItemRepository taskItemRepository;
 
-  List<ProjectNavOption> _projects = [];
   Set<TaskStatus> _activeStatuses = {};
 
   @override
@@ -51,13 +50,6 @@ class _MyHomePageState extends State<MyHomePage> {
     final appDependencies = context.appDependencies();
     taskItemRepository = appDependencies.taskItemRepository;
     taskItemRepository.createInitialTasks();
-
-    _projects = taskItemRepository.getAll().expect()
-        .map((t) => t.project)
-        .where((p) => p != null)
-        .toSet()
-        .map((projectName) => ProjectNavOption(title: projectName!))
-        .toList();
   }
 
   final Map<TaskStatus, IconData> _statusIcons = {
@@ -66,34 +58,6 @@ class _MyHomePageState extends State<MyHomePage> {
     TaskStatus.waitingFor: Icons.watch_rounded,
     TaskStatus.somedayMaybe: Icons.ac_unit_rounded,
   };
-
-  @override
-  void setState(VoidCallback fn) {
-    _setTaskState(fn);
-    super.setState(fn);
-  }
-
-  // Goal should be to remove this - extract logic to time of render instead
-  void _setTaskState(void Function()? stateFunc) {
-    if (stateFunc != null){
-      stateFunc();
-    }
-    // project logic
-    _projects = taskItemRepository.getAll().expect()
-        .map((t) => t.project)
-        .where((p) => p != null && p != "")
-        .toSet()
-        .map((projectName) => ProjectNavOption(title: projectName!))
-        .toList();
-    // If you've removed everything from the project, then it won't show up on the project list, and the name should be null.
-    if (!_projects.any((p) => p.title == _projectName)) {
-      _projectName = null;
-      _screenIndex = 0;
-      // Gotta call it again because I've changed _projectName. Ugh
-    }
-    // Recompute the screenindex, as projects may have changed
-    _screenIndex = _projects.indexWhere((p) => p.title == _projectName) + 1;
-  }
 
   void _showCaptureModal() {
     showDialog(
@@ -119,7 +83,10 @@ class _MyHomePageState extends State<MyHomePage> {
   int _screenIndex = 0;
   String? _projectName;
 
-  _onDestinationSelected(int index) {
+  _onDestinationSelected(
+      int index,
+      List<ProjectNavOption> projects,
+      ) {
     setState(() {
       _screenIndex = index;
       if (index <= 0) {
@@ -127,7 +94,7 @@ class _MyHomePageState extends State<MyHomePage> {
       }
       else {
         // Ugh this logic is hard
-        _projectName = _projects[index-1].title;
+        _projectName = projects[index-1].title;
       }
     });
     Future.delayed(const Duration(milliseconds: 100), () {
@@ -135,8 +102,27 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  List<ProjectNavOption> _displayProjects() {
+    return taskItemRepository.getAll().expect()
+        .map((t) => t.project)
+        .where((p) => p != null && p != "")
+        .toSet()
+        .map((projectName) => ProjectNavOption(title: projectName!))
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
+
+    List<ProjectNavOption> projects = _displayProjects();
+    if (!projects.any((p) => p.title == _projectName)) {
+      _projectName = null;
+      _screenIndex = 0;
+      // Gotta call it again because I've changed _projectName. Ugh
+    } else {
+      _screenIndex = projects.indexWhere((p) => p.title == _projectName) + 1;
+    }
+
     var pageTitle = _projectName ?? "All Tasks";
 
     return Scaffold(
@@ -147,8 +133,8 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       drawer: ProjectNavDrawer(
           screenIndex: _screenIndex,
-          onDestinationSelected: _onDestinationSelected,
-          projectNavOptions: _projects,
+          onDestinationSelected: ((index) => _onDestinationSelected(index, projects)),
+          projectNavOptions: projects,
       ),
       body: Column(
         children: [
@@ -201,6 +187,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ((item) => setState((){
                 taskItemRepository.update(item);
                 _activeStatuses = {item.status};
+                _projectName = item.project;
               })),
             ),
           ),
