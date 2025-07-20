@@ -5,6 +5,7 @@ import 'package:task_manager/result.dart';
 import 'package:task_manager/task_item.dart';
 import 'package:task_manager/task_item_page.dart';
 import 'package:task_manager/task_item_repository.dart';
+import 'package:task_manager/task_list_widget.dart';
 
 class ProjectPage extends StatefulWidget {
   const ProjectPage({super.key});
@@ -80,181 +81,42 @@ class _ProjectPageState extends State<ProjectPage> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            ..._tasks.where((task) => task.status == TaskStatus.somedayMaybe).map((item) =>
-                Column(
-                  children: [
-                    SizedBox(height: 5),
-                    // TODO I think a listtile will be better here:
-                    // https://api.flutter.dev/flutter/material/ListTile-class.html
-                    Hero(
-                        tag: "hero-item-id-${item.id}",
-                        child: Card(
-                          child: ListTile(
-                            title: Text(item.title,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                              ),
-                            ),
-                            subtitle: Text(item.status.toString()),
-                            onTap: () async {
-                              final updated = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(item: item)));
-                              if (updated == true) {
-                                setState((){
-                                  _taskItemRepository.update(item);
-                                });
-                              }
-                            },
-                          ),
-                        )
-                    ),
-                  ],
-                )
+            taskListView(
+              _tasks.where((t) => t.status == TaskStatus.somedayMaybe).toList(),
+              context,
+                  (item) => setState(() {
+                _taskItemRepository.update(item);
+              }),
             ),
-            // TODO
-            Row(
-              children: [
-                IconButton(
-                  onPressed: () async {
-                    // TODO handle result
-                    final newItem = _taskItemRepository.create(
-                      title: "Enter task title",
-                      status: TaskStatus.somedayMaybe,
-                      project: _projectTitle,
-                      // TODO maybe tie it to project via project ID
-                    ).expect();
-                    final updated = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(item: newItem)));
-                    if (updated == true) {
-                      setState((){
-                        _taskItemRepository.update(newItem);
-                        // TODO once project IDs are created, populate _tasks from the taskItemRepository
-                        _tasks.add(newItem);
-                      });
-                    }
-                  },
-                  icon: Icon(Icons.add),
-                ),
-                Expanded(child: SizedBox())
-              ],
-            ),
+            _addTask(TaskStatus.somedayMaybe),
             Text(
-                "Next Actions"
+              "Next Actions",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            ..._tasks.where((task) => task.status == TaskStatus.nextAction).map((item) =>
-                Column(
-                  children: [
-                    SizedBox(height: 5),
-                    // TODO I think a listtile will be better here:
-                    // https://api.flutter.dev/flutter/material/ListTile-class.html
-                    Hero(
-                        tag: "hero-item-id-${item.id}",
-                        child: Card(
-                          child: ListTile(
-                            title: Text(item.title,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                              ),
-                            ),
-                            subtitle: Text(item.status.toString()),
-                            onTap: () async {
-                              final updated = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(item: item)));
-                              if (updated == true) {
-                                setState((){
-                                  _taskItemRepository.update(item);
-                                });
-                              }
-                            },
-                          ),
-                        )
-                    ),
-                  ],
-                )
+            taskListView(
+              _tasks.where((t) => t.status == TaskStatus.nextAction).toList(),
+              context,
+              ((item) => setState(() {
+                _taskItemRepository.update(item);
+              })),
             ),
-            Row(
-              children: [
-                IconButton(
-                  onPressed: () async {
-                    // TODO handle result
-                    final newItem = _taskItemRepository.create(
-                      title: "Enter task title",
-                      status: TaskStatus.nextAction,
-                      project: _projectTitle,
-                      // TODO maybe tie it to project via project ID
-                    ).expect();
-                    final updated = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(item: newItem)));
-                    if (updated == true) {
-                      setState((){
-                        _taskItemRepository.update(newItem);
-                        // TODO once project IDs are created, populate _tasks from the taskItemRepository
-                        _tasks.add(newItem);
-                      });
-                    }
-                  },
-                  icon: Icon(Icons.add),
-                ),
-                Expanded(child: SizedBox())
-              ],
-            ),
+            _addTask(TaskStatus.nextAction),
             Text(
-                "Waiting For"
+              "Waiting For",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            ..._tasks.where((task) => task.status == TaskStatus.waitingFor).map((item) =>
-                Column(
-                  children: [
-                    SizedBox(height: 5),
-                    // TODO I think a listtile will be better here:
-                    // https://api.flutter.dev/flutter/material/ListTile-class.html
-                    Hero(
-                        tag: "hero-item-id-${item.id}",
-                        child: Card(
-                          child: ListTile(
-                            title: Text(item.title,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                              ),
-                            ),
-                            subtitle: Text(item.status.toString()),
-                            onTap: () async {
-                              final updated = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(item: item)));
-                              if (updated == true) {
-                                setState((){
-                                  _taskItemRepository.update(item);
-                                });
-                              }
-                            },
-                          ),
-                        )
-                    ),
-                  ],
-                )
+            taskListView(
+                _tasks.where((t) => t.status == TaskStatus.waitingFor).toList(),
+                context,
+                ((item) => setState(() {
+                  _taskItemRepository.update(item);
+                })),
             ),
-            Row(
-              children: [
-                IconButton(
-                  onPressed: () async {
-                    // TODO handle result
-                    final newItem = _taskItemRepository.create(
-                      title: "Enter task title",
-                      status: TaskStatus.waitingFor,
-                      project: _projectTitle,
-                      // TODO maybe tie it to project via project ID
-                    ).expect();
-                    final updated = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(item: newItem)));
-                    if (updated == true) {
-                      setState((){
-                        _taskItemRepository.update(newItem);
-                        // TODO once project IDs are created, populate _tasks from the taskItemRepository
-                        _tasks.add(newItem);
-                      });
-                    }
-                  },
-                  icon: Icon(Icons.add),
-                ),
-                Expanded(child: SizedBox())
-              ],
-            ),
+            _addTask(TaskStatus.waitingFor),
             Divider(),
             ElevatedButton(
                 onPressed: () {
@@ -272,81 +134,30 @@ class _ProjectPageState extends State<ProjectPage> {
     );
   }
 
-}
-
-// TODO this is an interesting idea to pursue later
-class NestedTextField extends StatefulWidget {
-  const NestedTextField({super.key});
-
-  @override
-  State<StatefulWidget> createState() => _NestedTextFieldState();
-
-}
-
-class _NestedTextFieldState extends State<NestedTextField> {
-  List<String> lines = [
-      "Enter content below",
-    ];
-
-  @override
-  Widget build(BuildContext context) {
-    final fullTextController = TextEditingController(
-      text: lines.join("\n"),
-    );
-    final newSectionController = TextEditingController();
-    return Column(
-      children: [
-        Text(
-          lines.join("\n"),
-          maxLines: null,
-        ),
-        ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.transparent,
-              shadowColor: Colors.transparent,
-            ),
-            onPressed: (){
-              if (newSectionController.text.isNotEmpty) {
-                setState(() {
-                  lines.add(newSectionController.text);
+  Widget _addTask(TaskStatus status) =>
+      Row(
+        children: [
+          IconButton(
+            onPressed: () async {
+              // TODO handle result
+              final newItem = _taskItemRepository.create(
+                title: "Enter task title",
+                status: status,
+                project: _projectTitle,
+                // TODO maybe tie it to project via project ID
+              ).expect();
+              final updated = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(item: newItem)));
+              if (updated == true) {
+                setState((){
+                  _taskItemRepository.update(newItem);
+                  // TODO once project IDs are created, populate _tasks from the taskItemRepository
+                  _tasks.add(newItem);
                 });
               }
             },
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 100,
-                  child: TextField(
-                    controller: newSectionController,
-                    decoration: InputDecoration(
-                      labelText: "Add new Section...",
-                      labelStyle: TextStyle(
-                        fontSize: 10,
-                      )
-                    ),
-                  ),
-                ),
-                Icon(Icons.add),
-              ],
-            )
-        )
-      ],
-    );
-    // return TextField(
-    //   maxLines: null,
-    //   keyboardType: TextInputType.multiline,
-    //   decoration: InputDecoration(
-    //     labelText: "Enter Text",
-    //     floatingLabelAlignment: FloatingLabelAlignment.center,
-    //     // suffixIcon: IconButton(onPressed: (){}, icon: Icon(Icons.add))
-    //     suffix: Column(
-    //       children: [
-    //         Text("Enter new heading"),
-    //         IconButton(onPressed: (){}, icon: Icon(Icons.add)),
-    //       ],
-    //     )
-    //   ),
-    // );
-  }
-
+            icon: Icon(Icons.add),
+          ),
+          Expanded(child: SizedBox())
+        ],
+      );
 }

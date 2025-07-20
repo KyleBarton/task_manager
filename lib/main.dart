@@ -4,11 +4,8 @@ import 'package:task_manager/app_dependencies.dart';
 import 'package:task_manager/project_nav_drawer.dart';
 import 'package:task_manager/result.dart';
 import 'package:task_manager/task_item.dart';
-import 'package:task_manager/task_item_page.dart';
 import 'package:task_manager/task_item_repository.dart';
-
-// Ok, next steps:
-// - Implement TODO statuses and make a good animation strategy for that
+import 'package:task_manager/task_list_widget.dart';
 
 void main() {
   final TaskItemRepository taskItemRepository = TaskItemRepository();
@@ -70,49 +67,6 @@ class _MyHomePageState extends State<MyHomePage> {
     TaskStatus.somedayMaybe: Icons.ac_unit_rounded,
   };
 
-  Widget _taskListView(List<TaskItem> tasks) {
-    return Expanded(
-        child: ListView(
-          shrinkWrap: true,
-          children: <Widget>[
-            ...tasks.map((item) =>
-                // TODO duplicated
-                Column(
-                  children: [
-                    SizedBox(height: 5),
-                    // TODO I think a listtile will be better here:
-                    // https://api.flutter.dev/flutter/material/ListTile-class.html
-                    Hero(
-                        tag: "hero-item-id-${item.id}",
-                        child: Card(
-                          child: ListTile(
-                            title: Text(item.title,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                              ),
-                            ),
-                            subtitle: Text(item.status.toString()),
-                            onTap: () async {
-                              final updated = await Navigator.push(context, MaterialPageRoute(builder: (context) => TaskItemPage(item: item)));
-                              if (updated == true) {
-                                setState((){
-                                  taskItemRepository.update(item);
-                                  _activeStatuses = {item.status};
-                                });
-                              }
-                            },
-                          ),
-                        )
-                    ),
-                  ],
-                )
-            ),
-          ],
-        )
-    );
-  }
-
   @override
   void setState(VoidCallback fn) {
     _setTaskState(fn);
@@ -164,6 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   int _screenIndex = 0;
   String? _projectName;
+
   _onDestinationSelected(int index) {
     setState(() {
       _screenIndex = index;
@@ -182,11 +137,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    var titleRowIcons = _activeStatuses.map((status) => _statusIcons[status]).where((s) => s != null).toList();
-    if (_activeStatuses.isEmpty) {
-      titleRowIcons = _statusIcons.values.toList();
-    }
-
     var pageTitle = _projectName ?? "All Tasks";
 
     return Scaffold(
@@ -244,7 +194,16 @@ class _MyHomePageState extends State<MyHomePage> {
             multiSelectionEnabled: true,
           ),
           SizedBox(height: 25),
-          _taskListView(_activeTasks()),
+          Expanded(
+            child: taskListView(
+              _activeTasks(_activeStatuses, _projectName),
+              context,
+              ((item) => setState((){
+                taskItemRepository.update(item);
+                _activeStatuses = {item.status};
+              })),
+            ),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -255,12 +214,15 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  List<TaskItem> _activeTasks() {
+  List<TaskItem> _activeTasks(
+      Set<TaskStatus> activeStatuses,
+      String? selectedProject,
+      ) {
     // TODO order by: inbox, nextAction, waitingFor, someday/Maybe
     // TODO order by project as well?
     return taskItemRepository.getAll()
         .expect() // TODO handle error
-        .where((item) => _activeStatuses.contains(item.status) || _activeStatuses.isEmpty)
-        .where((item) => item.project == _projectName || _projectName == null).toList();
+        .where((item) => activeStatuses.contains(item.status) || _activeStatuses.isEmpty)
+        .where((item) => item.project == selectedProject || selectedProject == null).toList();
   }
 }
