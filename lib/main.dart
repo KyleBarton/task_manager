@@ -103,7 +103,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   List<ProjectNavOption> _displayProjects() {
-    return taskItemRepository.getAll().expect()
+    return taskItemRepository.getAllTasks().expect()
         .map((t) => t.project)
         .where((p) => p != null && p != "")
         .toSet()
@@ -118,7 +118,6 @@ class _MyHomePageState extends State<MyHomePage> {
     if (!projects.any((p) => p.title == _projectName)) {
       _projectName = null;
       _screenIndex = 0;
-      // Gotta call it again because I've changed _projectName. Ugh
     } else {
       _screenIndex = projects.indexWhere((p) => p.title == _projectName) + 1;
     }
@@ -207,7 +206,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ) {
     // TODO order by: inbox, nextAction, waitingFor, someday/Maybe
     // TODO order by project as well?
-    return taskItemRepository.getAll()
+    return taskItemRepository.getAllTasks()
         .expect() // TODO handle error
         .where((item) => activeStatuses.contains(item.status) || _activeStatuses.isEmpty)
         .where((item) => item.project == selectedProject || selectedProject == null).toList();

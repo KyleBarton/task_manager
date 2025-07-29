@@ -1,4 +1,5 @@
 
+import 'package:task_manager/project.dart';
 import 'package:task_manager/result.dart';
 import 'package:task_manager/task_item.dart';
 
@@ -11,7 +12,9 @@ class TaskItemRepository {
 
   // Just doing a very basic in-memory DB for now
   final Map<int, TaskItem> _inMemoryTasks = {};
+  final Map<int, Project> _inMemoryProjects = {};
   int _latestTaskId = -1;
+  int _latestProjectId = -1;
 
   Result<TaskItem, RepositoryError> getById(int id) {
     if (_inMemoryTasks.containsKey(id)) {
@@ -44,13 +47,48 @@ class TaskItemRepository {
     }
   }
 
-  Result<List<TaskItem>, RepositoryError> getAll() {
+  Result<List<TaskItem>, RepositoryError> getAllTasks() {
     return Ok(
         _inMemoryTasks.entries
             .map((entry) => _inflate(entry.value))
             .toList()
     );
   }
+
+  Result<Project, RepositoryError> createProject(
+      {
+        required String title,
+        required String purpose,
+        required String outcomes,
+        required String brainstorming,
+        required String organization,
+        required String referenceData,
+        required List<TaskItem> tasks
+      }) {
+    _latestProjectId++;
+    final project = Project.create(
+      title: title,
+      purpose: purpose,
+      outcomes: outcomes,
+      brainstorming: brainstorming,
+      organization: organization,
+      referenceData: referenceData,
+      tasks: tasks,
+      id: _latestProjectId,
+    );
+    _inMemoryProjects[_latestProjectId] = project;
+
+    return Ok(_inflateProject(project));
+  }
+
+
+  Result<Project, RepositoryError> getProjectById(int id) {
+    if (_inMemoryProjects.containsKey(id)) {
+      return Ok(_inflateProject(_inMemoryProjects[id]!));
+    }
+    return Err(RepositoryError.notFound);
+  }
+
   // Copying over to avoid in-memory pass-by-reference for now
   // In a real storage scenario, the item will be serialized and this won't be an issue
   TaskItem _inflate(TaskItem item) {
@@ -62,6 +100,9 @@ class TaskItemRepository {
         id: item.id,
         status: item.status
     );
+  }
+  Project _inflateProject(Project project) {
+    return Project.create(title: project.title, purpose: project.purpose, outcomes: project.outcomes, brainstorming: project.brainstorming, organization: project.organization, referenceData: project.referenceData, tasks: project.tasks, id: project.id);
   }
 
   // TODO this is a temporary measure to give us some useful data at runtime

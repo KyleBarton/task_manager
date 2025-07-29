@@ -7,13 +7,21 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+import 'package:task_manager/app_dependencies.dart';
 
 import 'package:task_manager/main.dart';
+import 'package:task_manager/task_item_repository.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(
+        Provider(
+          create: (_) => AppDependencies(taskItemRepository: TaskItemRepository()),
+          child: MyApp(),
+        )
+    );
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);
