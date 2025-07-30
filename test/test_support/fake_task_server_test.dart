@@ -82,4 +82,44 @@ void main() {
     assert (firstGetRespBody["title"] == "Project1");
     assert (secondGetRespBody["title"] == "Project2");
   });
+  test("Can update a project", () async {
+    final uri = Uri.parse("http://localhost:8888/projects");
+    final body = {
+      "title": "Project",
+      "purpose": "Project Purpose",
+      "outcomes": "Project Outcomes",
+      'brainstorming': "Project Brainstorming",
+      'organization': "Project Organization",
+      'referenceData': "Project Reference Data",
+      'tasks': List.empty(),
+    };
+    final response = await http.post(uri, body: jsonEncode(body));
+
+    final Map<String, dynamic> responseBody = jsonDecode(response.body);
+    final int id = responseBody['id'];
+
+    final updateUri = Uri.parse('http://localhost:8888/projects/$id');
+    final updateBody = {
+      "title": "Updated title",
+      "purpose": "Updated purpose",
+      "outcomes": "Updated outcomes",
+      "brainstorming": "Updated brainstorming",
+      'organization': "Updated organization",
+      'referenceData': "Updated referenceData",
+    };
+
+    final updateResponse = await http.put(updateUri, body: jsonEncode(updateBody));
+
+    assert (updateResponse.statusCode == 200);
+
+    final updatedGetResponse = await http.get(updateUri);
+    final updatedBody = jsonDecode(updatedGetResponse.body);
+
+    assert (updatedBody["title"] == "Updated title");
+    assert (updatedBody["purpose"] == "Updated purpose");
+    assert (updatedBody["outcomes"] == "Updated outcomes");
+    assert (updatedBody["brainstorming"] == "Updated brainstorming");
+    assert (updatedBody["organization"] == "Updated organization");
+    assert (updatedBody["referenceData"] == "Updated referenceData");
+  });
 }
